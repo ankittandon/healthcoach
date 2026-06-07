@@ -125,11 +125,22 @@ class Intensity(Enum):
     moderate = "moderate"
     vigorous = "vigorous"
 
+class Exercise(BaseModel):
+    """
+    A single strength exercise within a workout (strength training only).
+    """
+    name: str = Field(..., description="Exercise name, e.g. 'Dumbbell Bench Press', 'Goblet Squat', 'Cable Row'.")
+    sets: int = Field(..., description="Number of working sets (warm-ups excluded).")
+    rep_range: str = Field(..., description="Target rep range as a string, e.g. '6-8', '8-12', '12-15'.")
+    target_rir: int = Field(..., description="Target Reps In Reserve at the end of each set (1-3 typical). Lower = closer to failure.")
+    progression: str = Field(..., description="The progressive overload rule, e.g. 'add reps until top of range for all sets, then increase weight and return to bottom of range'.")
+    notes: Optional[str] = Field(None, description="Optional form cues, substitutions, or equipment notes.")
+
 class Workout(BaseModel):
     """
     A workout object containing details about a given workout.
     """
-    id: Optional[str] = Field(None, description="A unique ID for this workout.") 
+    id: Optional[str] = Field(None, description="A unique ID for this workout.")
     type: str = Field(..., description=WORKOUT_TYPES_DESCRIPTION)
     location: Optional[str] = Field(None, description="An optional description of the location. Only include if the user describes a specific location.")
     completed: bool = Field(..., description="A flag marking whether the workout is completed. It should always be set to false on first generation.")
@@ -138,6 +149,9 @@ class Workout(BaseModel):
     durationMin: float = Field(..., description="How many minutes the workout lasts")
     isPlanWorkout: bool = Field(..., description="Whether workout is part of generated plan. By default, this is True. Only set to False if modifying an existing plan.")
     isHKWorkout: bool = Field(..., description="Whether workout came from HealthKit. By default, this is False. Only set to True if modifying an existing workout.")
+    focus: Optional[str] = Field(None, description="For strength workouts: the session focus, one of 'full_body', 'upper', 'lower', 'push', 'pull', 'legs'. Null for cardio/recovery workouts.")
+    exercises: Optional[List[Exercise]] = Field(None, description="For strength workouts: the list of exercises with sets, rep ranges, and RIR targets. Null for cardio/recovery workouts.")
+    autoregulation: Optional[str] = Field(None, description="Set to 'scale_by_recovery' on strength workouts to indicate the session should be scaled by the morning's Whoop recovery score. Null otherwise.")
 
 class WorkoutsByDay(BaseModel):
     """
@@ -152,6 +166,7 @@ class WorkoutsByDay(BaseModel):
     Saturday: Optional[List[Workout]] = Field(..., description="Workouts for Saturday or null if the day has passed.")
 
 class WeeklyPlan(BaseModel):
+    split_type: Optional[str] = Field(None, description="The strength training split for this week: 'full_body', 'upper_lower', or 'push_pull_legs'. Null if the plan contains no strength training.")
     rationale: Optional[str] = Field(..., description="A description of important factors to consider for scheduling this user's workout plan.")
     start: str = Field(..., description="ISO-8601 formatted date string, e.g. 'YYYY-MM-DD'. The start date must be a Sunday.")
     end: str = Field(..., description="ISO-8601 formatted date string, e.g. 'YYYY-MM-DD'. The end date must be a Saturday.")
@@ -566,9 +581,17 @@ class PlanModule:
                     
         # saturday = sunday + timedelta(days=6)       
         # 
-        plan_history = await PlanModule.get_weekly_plan_history(uid) 
-        
-        system_prompt = PromptLoader.plan_generation_prompt(today, start_date, end_date, chat_history, memory, chat_state, plan_history)
+        plan_history = await PlanModule.get_weekly_plan_history(uid)
+
+        # Whoop recovery context for autoregulation (degrades gracefully if not connected)
+        try:
+            from backend.modules.whoop_module import WhoopModule
+            whoop_recovery = await WhoopModule.describe(uid, "recovery", aggregation_level="week")
+        except Exception as e:
+            logger.warning(f"Could not fetch Whoop recovery for plan generation: {e}")
+            whoop_recovery = "No Whoop recovery data available."
+
+        system_prompt = PromptLoader.plan_generation_prompt(today, start_date, end_date, chat_history, memory, chat_state, plan_history, whoop_recovery)
         messages = [{"role": "system", "content": system_prompt}]
 
         try:

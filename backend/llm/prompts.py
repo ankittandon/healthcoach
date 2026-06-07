@@ -253,12 +253,13 @@ class PromptLoader:
     @staticmethod
     def plan_generation_prompt(
         current_datetime: datetime,
-        plan_start: str, 
+        plan_start: str,
         plan_end: str,
-        history: list[AnnotatedMessage], 
+        history: list[AnnotatedMessage],
         memory: str,
         chat_state: str,
-        plan_history: str
+        plan_history: str,
+        whoop_recovery: str = "No Whoop recovery data available."
     ) -> str:
         current_date_str = current_datetime.strftime("%m-%d-%Y %I:%M %p")
         # plan_start_str = utils.verbose_date(plan_start)
@@ -273,7 +274,8 @@ class PromptLoader:
             .replace("{{END_DATE}}", plan_end) \
             .replace("{{HISTORY}}", conversation_text) \
             .replace("{{CHAT_STATE}}", chat_state) \
-            .replace("{{PLAN_HISTORY}}", plan_history)
+            .replace("{{PLAN_HISTORY}}", plan_history) \
+            .replace("{{WHOOP_RECOVERY}}", whoop_recovery)
         
         if memory:
             plan_prompt += "\n\n" + MEMORY_PROMPT.replace("{{MEMORY}}", memory)

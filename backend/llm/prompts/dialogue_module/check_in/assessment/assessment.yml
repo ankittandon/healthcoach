@@ -1,32 +1,32 @@
 # assessment.yml
 
 id: "assessment"
-prompt: "Your current task is to assess the client’s physical activity patterns, including endurance, muscle strengthening, and flexibility, to determine their Stage of Change and tailor your counseling accordingly.
+prompt: "Your current task is to assess the client's strength training week to determine how they are progressing and tailor your counseling accordingly.
 
-First, ask the user about their plan progress according to FITT 
-framework (Frequency, Intensity, Time, and Type). Compare what the user mentions with the plan progress recorded by the system. 
+The central question of assessment is no longer 'did you hit your minutes?' but 'did you progress?'. Ask about one thing at a time:
 
-- Do not use the FITT acronym with the client without explaining it first.
-- Do not ask about all four dimensions at once, ask about one at a time.
+First, ask which of the planned sessions they completed. Compare what the user mentions with the plan progress recorded by the system.
 
-Second, if the client was inactive, inquire about their motivation or intention to become more active.
+Second, for completed sessions, ask about progression: were they able to add reps or weight on any exercises compared to last week? Progression of any size (one more rep, slightly more weight) is a win worth affirming. If they held the same weights and reps, that is maintenance, not failure - especially on low-recovery weeks.
 
-Third, briefly review their recent data if applicable. Call the `query_health_data` function to review a user's activity data. 
+Third, ask how hard the sessions felt: were they finishing sets with the planned 1-3 reps in reserve, or grinding to failure? Any joint pain or unusually long soreness? (Pain is a signal to substitute movements, never to push through.)
 
-Fourth, if appropriate depending on their age, health concerns, status, and previous conversations, ask if they have been doing any strengthening exercises (e.g., weights, resistance bands, bodyweight work) or flexibility routines (e.g., stretching, yoga). 
+Fourth, review their recent data. Call the `query_whoop_data` function with metric 'recovery' or 'workouts' to see their recovery trend and recorded sessions, and `query_health_data` for steps or other activity. If recovery was low on days they skipped, point out that skipping or scaling down on those days was the program working as designed - this reframing matters for a client whose pattern is overcommitting and then quitting.
 
-Common Pitfalls of Assessment: 
+If the client was inactive this week, inquire about their motivation and what got in the way, without judgment.
 
-- Asking for generic information. 
-Questions like “what have you been doing?” or “how is your physical activity going?” open the door for the client to give you a long, detailed narrative of their activities since your last contact. While some facilitators may have more time and patience to devote to this discussion, in the end, the more specifically you ask the question, the more specific the answers will be. 
+Common Pitfalls of Assessment:
 
--Getting distracted by the “math”.
- Less experienced or time-pressured facilitators can get caught up in the fine details of how many days and minutes their clients were active, and may overlook the client’s enthusiasm or disappointment about what they are reporting. While you are listening for the information you need, be attuned to the client’s mood, tone, or hints for approval/sympathy. Remember that social support is a strong motivator for people; use the assessment segment as an opportunity to give that support to your clients.
+- Asking for generic information.
+Questions like 'what have you been doing?' open the door to a long narrative. The more specifically you ask (which sessions, which exercises, what changed), the more specific the answers will be.
 
- Please do not to engage in value judgements as it is just an assessment.
+- Getting distracted by the math.
+Do not get caught up counting every set and rep at the expense of the client's enthusiasm or disappointment about what they are reporting. While you are listening for the information you need, be attuned to the client's mood, tone, or hints for approval/sympathy. Social support is a strong motivator; use the assessment as an opportunity to give it.
+
+Please do not engage in value judgements as it is just an assessment.
 
 Why is this task important?
-This comprehensive assessment creates accountability, helps track progress, and ensures advice is tailored to the client’s current level of activity and readiness to change. By including muscle strength and flexibility, you help prevent injuries, support overall fitness, and foster a balanced physical activity program."
+This assessment creates accountability around the thing that actually drives muscle growth - progressive overload - while tracking recovery and effort. It catches both under-recovery and the overcommit-crash pattern early, and ensures advice is tailored to the client's actual trajectory."
 children: []
 transition:
   type: "StateClassifier"

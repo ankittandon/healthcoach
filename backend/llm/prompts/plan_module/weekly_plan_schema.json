@@ -1,166 +1,90 @@
 {
   "name": "weekly_plan",
   "strict": true,
+  "comment": "Documentation of the weekly plan contract. The authoritative schema is the WeeklyPlan Pydantic model in backend/modules/plan_module.py (used as OpenAI structured output). Strength fields (split_type, focus, exercises, autoregulation) are optional extensions so legacy cardio plans remain valid.",
   "schema": {
     "type": "object",
-    "required": [
-      "rationale",
-      "message",
-      "start",
-      "end",
-      "workoutsByDay"
-    ],
+    "required": ["rationale", "start", "end", "workoutsByDay", "isActive"],
     "properties": {
-      "end": {
-        "type": "string",
-        "description": "MM-DD-YYYY formatted date string. The end date must be a Saturday."
+      "split_type": {
+        "type": ["string", "null"],
+        "enum": ["full_body", "upper_lower", "push_pull_legs", null],
+        "description": "Strength split for the week. 2-3 training days -> full_body; 4 -> upper_lower; 5-6 -> push_pull_legs. Null if no strength training."
+      },
+      "rationale": {
+        "type": ["string", "null"],
+        "description": "A short justification explaining why this plan was generated according to the user's preferences, constraints, and recent Whoop recovery."
+      },
+      "revision": {
+        "type": ["string", "null"],
+        "description": "A message indicating any revisions made to the plan."
       },
       "start": {
         "type": "string",
-        "description": "MM-DD-YYYY formatted date string. The start date must be a Sunday."
+        "description": "ISO-8601 date (YYYY-MM-DD). Must be a Sunday."
       },
-      "message": {
+      "end": {
         "type": "string",
-        "description": "A short message displayed the user before the workout is displayed. This message should summarize the workout and indicate how their preferences and constraints were incorporated."
+        "description": "ISO-8601 date (YYYY-MM-DD). Must be a Saturday."
       },
-      "rationale": {
-        "type": "string",
-        "description": "A short justification explaining why this workout was generated according to the user's preferences and constraints. "
+      "isActive": {
+        "type": "boolean",
+        "description": "Whether the plan is active."
       },
       "workoutsByDay": {
         "type": "object",
-        "required": [
-          "Sunday",
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday",
-          "Saturday"
-        ],
+        "required": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
         "properties": {
-          "Sunday": {
-            "type": [
-              "array",
-              "null"
-            ],
-            "items": {
-              "$ref": "#/definitions/Workout"
-            }
-          },
-          "Monday": {
-            "type": [
-              "array",
-              "null"
-            ],
-            "items": {
-              "$ref": "#/definitions/Workout"
-            }
-          },
-          "Tuesday": {
-            "type": [
-              "array",
-              "null"
-            ],
-            "items": {
-              "$ref": "#/definitions/Workout"
-            }
-          },
-          "Wednesday": {
-            "type": [
-              "array",
-              "null"
-            ],
-            "items": {
-              "$ref": "#/definitions/Workout"
-            }
-          },
-          "Thursday": {
-            "type": [
-              "array",
-              "null"
-            ],
-            "items": {
-              "$ref": "#/definitions/Workout"
-            }
-          },
-          "Friday": {
-            "type": [
-              "array",
-              "null"
-            ],
-            "items": {
-              "$ref": "#/definitions/Workout"
-            }
-          },
-          "Saturday": {
-            "type": [
-              "array",
-              "null"
-            ],
-            "items": {
-              "$ref": "#/definitions/Workout"
-            }
-          }
+          "Sunday":    { "type": ["array", "null"], "items": { "$ref": "#/definitions/Workout" } },
+          "Monday":    { "type": ["array", "null"], "items": { "$ref": "#/definitions/Workout" } },
+          "Tuesday":   { "type": ["array", "null"], "items": { "$ref": "#/definitions/Workout" } },
+          "Wednesday": { "type": ["array", "null"], "items": { "$ref": "#/definitions/Workout" } },
+          "Thursday":  { "type": ["array", "null"], "items": { "$ref": "#/definitions/Workout" } },
+          "Friday":    { "type": ["array", "null"], "items": { "$ref": "#/definitions/Workout" } },
+          "Saturday":  { "type": ["array", "null"], "items": { "$ref": "#/definitions/Workout" } }
         },
-        "description": "Dictionary of workouts by weekdays. If the day of the week has already passed, return null for that day's workout. For example, if today is Tuesday at 8AM, Sunday and Monday must be set to null and the Tuesday object cannot have a workout before 8AM, while Wednesday through Saturday may have a workout object.",
+        "description": "Dictionary of workouts by weekday. Days already in the past are null. Leave at least one full rest day per week.",
         "additionalProperties": false
       }
     },
     "definitions": {
+      "Exercise": {
+        "type": "object",
+        "required": ["name", "sets", "rep_range", "target_rir", "progression"],
+        "properties": {
+          "name":        { "type": "string", "description": "e.g. 'Dumbbell Bench Press', 'Goblet Squat', 'Cable Row'." },
+          "sets":        { "type": "integer", "description": "Working sets, warm-ups excluded." },
+          "rep_range":   { "type": "string", "description": "e.g. '6-8', '8-12', '12-15'." },
+          "target_rir":  { "type": "integer", "description": "Reps In Reserve target (1-3 typical); intensity is proximity to failure, not %1RM." },
+          "progression": { "type": "string", "description": "Progressive overload rule, e.g. 'add reps to top of range on all sets, then add weight and return to bottom of range'." },
+          "notes":       { "type": ["string", "null"], "description": "Form cues, substitutions, equipment notes." }
+        },
+        "additionalProperties": false
+      },
       "Workout": {
         "type": "object",
-        "required": [
-          "durationMin",
-          "intensity",
-          "timeStart",
-          "type",
-          "location",
-          "completed",
-          "reminder"
-        ],
+        "required": ["durationMin", "intensity", "timeStart", "type", "completed"],
         "properties": {
-          "type": {
-            "enum": [
-              "run",
-              "walk",
-              "swim",
-              "recovery"
-            ],
-            "type": "string",
-            "description": "The type of activity done in this workout."
+          "type":        { "type": "string", "description": "Activity type; strength sessions use 'traditional strength training'. Must be a valid HealthKit-compatible type from VALID_WORKOUT_TYPES." },
+          "location":    { "type": ["string", "null"] },
+          "completed":   { "type": "boolean", "description": "Always false on first generation." },
+          "intensity":   { "enum": ["light", "moderate", "vigorous"], "type": "string" },
+          "timeStart":   { "type": "string", "description": "Local start time, 'hh:mm tt' (e.g., 6:30 AM)." },
+          "durationMin": { "type": "integer", "description": "Session length including warm-up and rest periods." },
+          "focus": {
+            "type": ["string", "null"],
+            "enum": ["full_body", "upper", "lower", "push", "pull", "legs", null],
+            "description": "Session focus for strength workouts; null for cardio/recovery."
           },
-          "location": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "An optional description of the location. Only include if the user describes a specific location."
+          "exercises": {
+            "type": ["array", "null"],
+            "items": { "$ref": "#/definitions/Exercise" },
+            "description": "4-6 exercises for strength sessions, compounds first; null for cardio/recovery. Weekly volume target: ~10-20 working sets per muscle group (start 8-10 when returning from a break)."
           },
-          "reminder": {
-            "type": "boolean",
-            "description": "Whether the user wants to receive a push notification reminder for this workout."
-          },
-          "completed": {
-            "type": "boolean",
-            "description": "A flag marking whether the workout is completed. It should always be set to false on first generation."
-          },
-          "intensity": {
-            "enum": [
-              "light",
-              "moderate",
-              "vigorous"
-            ],
-            "type": "string",
-            "description": "The workout's intensity, determined by target HR or the talk test."
-          },
-          "timeStart": {
-            "type": "string",
-            "description": "The time of day that the workout should start in the user's local time in a 'hh:mm tt' format (e.g., 6:30 AM, 4:00 PM)."
-          },
-          "durationMin": {
-            "type": "integer",
-            "description": "How many minutes the workout lasts"
+          "autoregulation": {
+            "type": ["string", "null"],
+            "enum": ["scale_by_recovery", null],
+            "description": "On strength sessions, 'scale_by_recovery' means day-of coaching scales the session by the morning's Whoop recovery: green = as planned, yellow = hold volume, red = cut volume or swap to light/mobility day."
           }
         },
         "additionalProperties": false
