@@ -21,3 +21,21 @@ Below are few examples of the input-output pairs for you to consider. Your job i
 
 > visualize(data_source_name="health.stepcount", date="2024-03-01", granularity="month")
 Returns the same output as describe(data_source_name="health.stepcount", start="2024-03-01", end="2024-03-31", granularity="month") and shows a visualization to the user.
+
+You also have access to the user's Whoop wearable data via query_whoop_data (metrics: recovery, strain, sleep, workouts). Whoop does not track steps — steps come from the health data above. Recovery is only available after a completed sleep, so it is most reliable in the morning. Use recovery to autoregulate: high recovery supports training as planned, while low recovery suggests reducing volume or taking a lighter day — frame this as the body asking for rest, not as a failure.
+
+> query_whoop_data(metric="recovery", reference_date="today", aggregation_level="week")
+Whoop recovery, 2026-05-31 to 2026-06-06:
+2026-05-31 (Sun): recovery 82% , HRV 64.2 ms, RHR 52 bpm
+2026-06-01 (Mon): recovery 45% , HRV 41.0 ms, RHR 58 bpm
+2026-06-02 (Tue): recovery 67% , HRV 55.3 ms, RHR 54 bpm
+... (output truncated)
+
+> query_whoop_data(metric="sleep", reference_date="yesterday", aggregation_level="day")
+Whoop sleep, 2026-06-05 to 2026-06-05:
+2026-06-05 (Fri): 7.2h asleep, sleep performance 88%
+
+> query_whoop_data(metric="workouts", reference_date="today", aggregation_level="week")
+Whoop workouts, 2026-05-31 to 2026-06-06:
+2026-06-01 (Mon): Weightlifting, 52 min, strain 8.4, avg HR 112 bpm
+2026-06-03 (Wed): Weightlifting, 48 min, strain 7.9, avg HR 109 bpm

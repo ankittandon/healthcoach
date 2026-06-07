@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 160" width="660" height="160">
+  <!-- Horizontal lockup: mark + wordmark -->
+  <g transform="translate(10 8) scale(0.56)">
+    <ellipse cx="128" cy="96" rx="21" ry="52" transform="rotate(-58 128 150)" fill="#15803d"/>
+    <ellipse cx="128" cy="96" rx="21" ry="52" transform="rotate(58 128 150)" fill="#15803d"/>
+    <ellipse cx="128" cy="96" rx="21" ry="52" transform="rotate(-29 128 150)" fill="#16a34a"/>
+    <ellipse cx="128" cy="96" rx="21" ry="52" transform="rotate(29 128 150)" fill="#16a34a"/>
+    <ellipse cx="128" cy="96" rx="21" ry="52" fill="#22c55e"/>
+    <circle cx="128" cy="150" r="17" fill="#fbbf24"/>
+    <path d="M128 167 L128 208" stroke="#15803d" stroke-width="11" stroke-linecap="round"/>
+    <path d="M128 192 C 110 192, 98 182, 96 166 C 112 166, 124 176, 128 192 Z" fill="#16a34a"/>
+  </g>
+  <text x="172" y="96" font-family="Avenir Next, Helvetica Neue, Helvetica, Arial, sans-serif"
+        font-size="64" font-weight="600" fill="#1e293b">Bloom</text>
+  <text x="175" y="126" font-family="Avenir Next, Helvetica Neue, Helvetica, Arial, sans-serif"
+        font-size="16" font-weight="500" fill="#64748b" letter-spacing="2">PERSONAL HEALTH COACH</text>
+</svg>

@@ -10,7 +10,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from backend.task_queue import TaskQueue
 from backend.managers.firebase_manager import FirebaseManager
 from backend.listeners.user_listener import UserListener
-from backend.api import chat, auth, summary, widgets
+from backend.api import chat, auth, summary, widgets, whoop
 from backend import config
 
 import sentry_sdk
@@ -66,8 +66,21 @@ async def on_startup():
 
     task_queue = TaskQueue()
     task_queue.start()
-    
+
     UserListener()
+
+    # Hourly Whoop polling (skips users without a Whoop connection).
+    if config.WHOOP_CLIENT_ID:
+        from apscheduler.triggers.interval import IntervalTrigger
+        from backend.modules.whoop_module import WhoopModule
+        task_queue.add_task(
+            WhoopModule.sync_all_users,
+            IntervalTrigger(minutes=config.WHOOP_POLL_INTERVAL_MIN),
+            job_id="whoop_poll_all",
+        )
+        logger.info(f"Whoop polling scheduled every {config.WHOOP_POLL_INTERVAL_MIN} min")
+    else:
+        logger.info("WHOOP_CLIENT_ID not set; Whoop polling disabled")
 
 async def on_shutdown():
     pass
@@ -92,6 +105,7 @@ app.include_router(chat.router)
 app.include_router(auth.router)
 app.include_router(widgets.router)
 app.include_router(summary.router)
+app.include_router(whoop.router)
 
 # An example route to trigger an error
 @app.get("/sentry-debug")

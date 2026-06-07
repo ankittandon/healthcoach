@@ -21,7 +21,7 @@ task_queue = TaskQueue()
 
 class ToolModule:
     def __init__(self, chat_state: str):
-        self.backend_tools = ["generate_plan", "plan-widget", "addWorkout", "deleteWorkout"]  # directly executed in the backend
+        self.backend_tools = ["generate_plan", "plan-widget", "addWorkout", "deleteWorkout", "query_whoop_data"]  # directly executed in the backend
         self.frontend_tools = ["query_health_data"]
         self.active_tool_calls = {}  # type: ignore[var-annotated]
         self.finished_tool_calls = {}  # type: ignore[var-annotated]
@@ -96,6 +96,47 @@ class ToolModule:
                             }
                         },
                         "required": ["sample_type"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "query_whoop_data",
+                    "description": "Queries the user's Whoop wearable data (recovery, strain, sleep, workouts). Whoop does not track steps — use query_health_data for steps. Recovery is only available after a completed sleep, so it is most useful for morning check-ins and for autoregulating training plans (high recovery: train as planned; low recovery: reduce volume or rest).",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "metric": {
+                                "type": "string",
+                                "enum": [
+                                    "recovery",
+                                    "strain",
+                                    "sleep",
+                                    "workouts"
+                                ],
+                                "description": """The Whoop metric to query. Options are:
+                                    recovery: "Daily recovery score (0-100%), HRV, and resting heart rate. Reflects how ready the body is to take on strain today. Only available after a completed sleep.",
+                                    strain: "Whoop day strain (0-21 scale) with average and max heart rate. Measures total cardiovascular load accumulated over the day.",
+                                    sleep: "Sleep duration and sleep performance percentage per night.",
+                                    workouts: "Workouts recorded by Whoop with sport, duration, strain, and average heart rate."
+                                """
+                            },
+                            "reference_date": {
+                                "type": "string",
+                                "description": "the query's reference date, in natural language ('today', 'yesterday') or ISO string. defaults to today"
+                            },
+                            "aggregation_level": {
+                                "type": "string",
+                                "enum": [
+                                    "day",
+                                    "week",
+                                    "month"
+                                ],
+                                "description": "the time frame over which the data should be fetched (ending at the reference date)"
+                            }
+                        },
+                        "required": ["metric"]
                     }
                 }
             },
@@ -370,6 +411,39 @@ class ToolModule:
                 "name": function_name
             }
 
+    async def query_whoop_data(self, uid: str, tool_request: dict) -> dict:
+        """
+        Handles the query_whoop_data tool call by describing the requested
+        Whoop metric over the requested window. Read-only; never shown as a widget.
+        """
+        from backend.modules.whoop_module import WhoopModule
+
+        function_name = tool_request["function"]["name"]
+        tool_call_id = tool_request["id"]
+
+        raw_args = tool_request["function"].get("arguments", {})
+        if isinstance(raw_args, str):
+            arguments = json.loads(raw_args) if raw_args else {}
+        else:
+            arguments = raw_args
+
+        metric = arguments.get("metric", "recovery")
+        reference_date = arguments.get("reference_date")
+        aggregation_level = arguments.get("aggregation_level", "day")
+
+        try:
+            content = await WhoopModule.describe(uid, metric, reference_date, aggregation_level)
+        except Exception as e:
+            logger.error(f"Error querying Whoop data for user {uid}: {e}")
+            content = "Error querying Whoop data. The data source may be temporarily unavailable."
+
+        return {
+            "tool_call_id": tool_call_id,
+            "content": content,
+            "role": "tool",
+            "name": function_name
+        }
+
     def _is_successful_plan_result(self, result: dict) -> bool:
         """
         Checks if the result dictionary includes a valid plan.
@@ -416,7 +490,15 @@ class ToolModule:
         # Process backend calls in order
         for i, tool_request in enumerate(backend_tool_calls):
             fn_name = tool_request["function"]["name"]
-            if fn_name in ["generate_plan", "plan-widget"]:
+            if fn_name == "query_whoop_data":
+                # Read-only data query; no widget to show
+                await self._handle_backend_tool(
+                    uid, tool_request, dialogue_history,
+                    response_call_back, send_to_frontend,
+                    chat_state,
+                    show_plan_widget=False
+                )
+            elif fn_name in ["generate_plan", "plan-widget"]:
                 # Show widget immediately
                 await self._handle_backend_tool(
                     uid, tool_request, dialogue_history,
@@ -574,6 +656,12 @@ class ToolModule:
                         should_respond_tool_call=False
                     )
                     await send_to_frontend(uid, message, store=False)
+            elif tool_name == "query_whoop_data":
+                result = await asyncio.wait_for(
+                    self.query_whoop_data(uid, tool_request),
+                    timeout=TOOL_CALL_TIMEOUT_DELAY
+                )
+
             else:
                 logger.error(f"Error: Tool '{tool_name}' not found.")
                 result = {

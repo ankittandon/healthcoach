@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- iOS-style rounded square, white mark on green gradient -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#16a34a"/>
+      <stop offset="1" stop-color="#15803d"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="256" height="256" rx="58" fill="url(#bg)"/>
+  <g>
+    <ellipse cx="128" cy="102" rx="20" ry="50" transform="rotate(-58 128 154)" fill="#ffffff" opacity="0.85"/>
+    <ellipse cx="128" cy="102" rx="20" ry="50" transform="rotate(58 128 154)" fill="#ffffff" opacity="0.85"/>
+    <ellipse cx="128" cy="102" rx="20" ry="50" transform="rotate(-29 128 154)" fill="#ffffff" opacity="0.93"/>
+    <ellipse cx="128" cy="102" rx="20" ry="50" transform="rotate(29 128 154)" fill="#ffffff" opacity="0.93"/>
+    <ellipse cx="128" cy="102" rx="20" ry="50" fill="#ffffff"/>
+    <circle cx="128" cy="154" r="16" fill="#fbbf24"/>
+    <path d="M128 170 L128 204" stroke="#ffffff" stroke-width="10" stroke-linecap="round" opacity="0.95"/>
+  </g>
+</svg>

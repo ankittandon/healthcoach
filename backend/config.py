@@ -28,6 +28,15 @@ FIREBASE_AUTH_EMULATOR_PORT = os.getenv("FIREBASE_AUTH_EMULATOR_PORT", "9099")
 FIREBASE_FIRESTORE_EMULATOR_PORT = os.getenv("FIREBASE_FIRESTORE_EMULATOR_PORT", "8080")
 FIREBASE_STORAGE_EMULATOR_PORT = os.getenv("FIREBASE_STORAGE_EMULATOR_PORT", "9199")
 
+# Whoop Config
+WHOOP_CLIENT_ID = os.getenv("WHOOP_CLIENT_ID")
+WHOOP_CLIENT_SECRET = os.getenv("WHOOP_CLIENT_SECRET")
+WHOOP_REDIRECT_URI = os.getenv("WHOOP_REDIRECT_URI", f"http://localhost:{BACKEND_PORT}/whoop/callback")
+WHOOP_API_BASE_URL = os.getenv("WHOOP_API_BASE_URL", "https://api.prod.whoop.com")
+WHOOP_OAUTH_SCOPES = "offline read:cycles read:sleep read:recovery read:workout read:body_measurement read:profile"
+# How often (minutes) to poll Whoop for new data. Hourly is plenty for a single user.
+WHOOP_POLL_INTERVAL_MIN = int(os.getenv("WHOOP_POLL_INTERVAL_MIN", 60))
+
 # LLM Config
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o")

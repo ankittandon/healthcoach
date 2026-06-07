@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Bloom mark: five petals fanned like a recovery gauge, amber center -->
+  <g>
+    <ellipse cx="128" cy="96" rx="21" ry="52" transform="rotate(-58 128 150)" fill="#15803d"/>
+    <ellipse cx="128" cy="96" rx="21" ry="52" transform="rotate(58 128 150)" fill="#15803d"/>
+    <ellipse cx="128" cy="96" rx="21" ry="52" transform="rotate(-29 128 150)" fill="#16a34a"/>
+    <ellipse cx="128" cy="96" rx="21" ry="52" transform="rotate(29 128 150)" fill="#16a34a"/>
+    <ellipse cx="128" cy="96" rx="21" ry="52" fill="#22c55e"/>
+    <circle cx="128" cy="150" r="17" fill="#fbbf24"/>
+    <!-- stem -->
+    <path d="M128 167 L128 208" stroke="#15803d" stroke-width="11" stroke-linecap="round"/>
+    <!-- leaf -->
+    <path d="M128 192 C 110 192, 98 182, 96 166 C 112 166, 124 176, 128 192 Z" fill="#16a34a"/>
+  </g>
+</svg>
