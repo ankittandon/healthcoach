@@ -58,3 +58,4 @@ obs.sqlite
 *.ipa
 *.dSYM
 *.dSYM.zip
+backend/serviceAccount.json
